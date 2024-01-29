@@ -29,6 +29,9 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // coroutine 29/01/2024
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
