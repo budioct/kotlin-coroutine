@@ -34,7 +34,7 @@ class ExecutorService {
             executor.execute{
                 Thread.sleep(1_000)
                 println("Done $it ${Date()} in ${Thread.currentThread().name}")
-            }
+            } // execute(Runnable)
         }
         Thread.sleep(11_000) // menunggu sampai proses Thread selesai
         println("Done Program ${Date()}")
@@ -49,7 +49,7 @@ class ExecutorService {
             executor.execute{
                 Thread.sleep(500)
                 println("Done $it ${Date()} in ${Thread.currentThread().name}")
-            }
+            } // execute(Runnable)
         }
         Thread.sleep(11_000) // menunggu sampai proses Thread selesai
         println("Done Program ${Date()}")
@@ -64,7 +64,7 @@ class ExecutorService {
             executor.execute{
                 Thread.sleep(500)
                 println("Done $it ${Date()} in ${Thread.currentThread().name}")
-            }
+            } // execute(Runnable)
         }
         Thread.sleep(5_000) // menunggu sampai proses Thread selesai
         println("Done Program ${Date()}")
