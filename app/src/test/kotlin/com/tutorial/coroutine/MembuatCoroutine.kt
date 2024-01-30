@@ -22,22 +22,24 @@ class MembuatCoroutine {
         // GlobalScope untuk menjalankan Coroutine, untuk menjalankanya dengan method launch()
         GlobalScope.launch {
             world() // menjalankan suspend function di Kotlin // tanpa harus mem-block thread yang sedang menjalankannya.
-        }
+        } // jalan asynchronous
 
         println("Hello")
         // Thread.sleep(2_000) // tidak ada error compile tetapi akan mem-block thread yang sedang berjalan saat ini
         // delay(2_000) // Fungsi penangguhan 'delay()' harus dipanggil hanya dari coroutine atau fungsi penangguhan lainnya
 
+        println("MENUNGGU")
         runBlocking {
             delay(2_000)
         } // fun <T> runBlocking(context: CoroutineContext, block: suspend CoroutineScope.() -> T): T  // supaya kemampuan coroutine bisa digunakan
+        println("SELESAI")
     }
 
     // suspending function
     suspend fun world() {
 
         delay(1_000)
-        (1..100).forEach {
+        (1..5).forEach {
             println("world")
         }
         /**
@@ -58,14 +60,14 @@ class MembuatCoroutine {
 
     @Test
     fun testThread() {
-        (1..100000).forEach {
+        (1..10000).forEach {
             thread {
                 Thread.sleep(1000)
-                println("Thread $it: ${Date()}")
-            }
-        }
+                println("Thread $it: ${Date()} ${Thread.currentThread().name}")
+            } // jalan asynchronous
+        }// Setiap loop membuat thread baru
 
-        Thread.sleep(10_000)
+        Thread.sleep(3000) // menunggu proses manual
         println("Done")
     }
 
@@ -74,76 +76,12 @@ class MembuatCoroutine {
         (1..100000).forEach {
             GlobalScope.launch {
                 delay(1000)
-                println("Coroutine $it: ${Date()}")
-            }
-        }
+                println("Coroutine $it: ${Date()} ${Thread.currentThread().name}") // Coroutine 29: Tue Jan 30 09:50:32 WIB 2024 DefaultDispatcher-worker-4 @coroutine#29
+            } // jalan asynchronous
+        }// Setiap loop membuat thread baru
 
-        runBlocking { delay(1000) }
+        runBlocking { delay(3000) }
         println("Done")
     }
-
-    /**
-     * Job
-     * ● Saat sebuah coroutine dijalankan menggunakan function launch, sebenarnya function tersebut
-     *    mengembalikan sebuah object Job
-     * ● Dengan object Job, kita bisa menjalankan, membatalkan atau menunggu sebuah coroutine
-     */
-
-    @Test
-    fun testJob() {
-
-        // coroutine di runBlocking
-        // blocking tidak akan menunggu coroutine
-        runBlocking {
-            GlobalScope.launch {
-                delay(2000)
-                println("Hello World")
-            }
-        }
-    }
-
-    @Test
-    fun testJobStart() {
-
-        // menjalankan job
-        runBlocking {
-            val job: Job = GlobalScope.launch(start = CoroutineStart.LAZY) {
-                delay(2000)
-                println("Hello World")
-            } // instance coroutine dalam job
-
-            job.start() // start() menjalankan job
-            delay(3000) // menunggu proses job manual
-        }
-    }
-
-    @Test
-    fun testJobJoin() {
-
-        // menunggu job
-        runBlocking {
-            val job: Job = GlobalScope.launch {
-                delay(10_000)
-                println("Hello World")
-            }
-
-            job.join() // join() menunggu proses job sampai selesai otomatis
-        }
-    }
-
-    fun testJobCancel() {
-
-        // membatalkan job
-        runBlocking {
-            val job: Job = GlobalScope.launch {
-                delay(2000)
-                println("Hello World")
-            }
-
-            job.cancel() // cancel() membatalkan job
-            delay(3000) // menunggu proses job manual
-        }
-    }
-
 
 }
