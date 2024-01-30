@@ -45,7 +45,7 @@ class AsyncFunction {
 
             println("Time: $time")
             /**
-             * result: method suspend berjalan secara asynchronouse dengan return value.. ini yang di harapkan.. ini seperti job Callable return Future<T> Promise di java thread
+             * result: method suspend berjalan secara asynchronouse dengan return value.. ini yang di harapkan.. ini seperti job Callable return Future<T> dan Promise di java thread
              * Total is: 20
              * Time: 1045
              */
