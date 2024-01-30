@@ -73,4 +73,46 @@ class CoroutineScopeParentandChild {
 
     }
 
+    /**
+     * Coroutine Parent & Child
+     * ● Selain coroutine scope, coroutine sendiri bisa memiliki child coroutine
+     * ● Saat membuat coroutine child, secara otomatis kita akan mewarisi coroutine context yang ada di coroutine parent
+     * ● Dan coroutine parent akan menunggu sampai eksekusi coroutine child nya selesai semua
+     */
+
+    @Test
+    fun testParentChildCoroutine() {
+
+        runBlocking {
+            val job = GlobalScope.launch {
+                // block parent
+                println("Start Block Coroutine Parent")
+                launch {
+                    // block child
+                    delay(2000)
+                    println("Start Block Coroutine Child 1 finish")
+                }
+
+                launch {
+                    delay(4000)
+                    println("Start Block Coroutine Child 2 finish")
+                }
+                delay(1000)
+                println("Finish Block Coroutine Parent")
+            }
+
+            job.join() // join() menunggu proses hingga selesai
+        }
+
+        /**
+         * result:
+         * Start Block Coroutine Parent
+         * Finish Block Coroutine Parent
+         * Start Block Coroutine Child 1 finish
+         * Start Block Coroutine Child 2 finish
+         */
+
+    }
+
+
 }
