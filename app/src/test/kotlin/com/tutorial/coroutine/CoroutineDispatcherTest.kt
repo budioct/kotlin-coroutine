@@ -2,6 +2,7 @@ package com.tutorial.coroutine
 
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
+import java.util.concurrent.Executors
 
 class CoroutineDispatcherTest {
 
@@ -95,6 +96,48 @@ class CoroutineDispatcherTest {
              * 3 Confined: int thread DefaultDispatcher-worker-1 @coroutine#3
              */
         }
+    }
+
+    /**
+     * Membuat Coroutine Dispatcher
+     * ● Saat membuat aplikasi, kadang kita ingin flexible menentukan thread yang akan kita gunakan untuk menjalankan coroutine
+     * ● Misal, kita ingin membedakan thread untuk layer web, layer http client, dan lain-lain
+     * ● Oleh karena ini, membuat Coroutine Dispatcher sendiri sangat direkomendasikan.
+     * ● Untuk membuat Coroutine Dispatcher secara manual, kita bisa melakukannya dengan cara menggunakan ExecutorService
+     */
+
+    @Test
+    fun testCreateDispatcherWithExecutorService() {
+
+        // instance dispatchcr dengan executor service
+        val dispatcherService: ExecutorCoroutineDispatcher = Executors.newFixedThreadPool(10).asCoroutineDispatcher() // ExecutorService.asCoroutineDispatcher(): ExecutorCoroutineDispatcher // method extendsion return ExecutorCoroutineDispatcher
+        val dispatcherWeb = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
+
+        runBlocking {
+            val job1 = GlobalScope.launch(dispatcherService) {
+                println("1 Service dispatcherService run in thread ${Thread.currentThread().name}")
+                delay(1000)
+                println("2 Service dispatcherService run in thread ${Thread.currentThread().name}")
+            }
+            val job2 = GlobalScope.launch(dispatcherWeb) {
+                println("1 Service dispatcherWeb run in thread ${Thread.currentThread().name}")
+                delay(1000)
+                println("2 Service dispatcherWeb run in thread ${Thread.currentThread().name}")
+            }
+
+            // eksekusi
+            listOf(job1, job2).forEach { it.join() }
+//            joinAll(job1, job2)
+
+            /**
+             * result: hasil thread adalah menggunakan thread pool segment coroutine
+             * 1 Service dispatcherService run in thread pool-1-thread-1 @coroutine#2
+             * 1 Service dispatcherWeb run in thread pool-2-thread-1 @coroutine#3
+             * 2 Service dispatcherService run in thread pool-1-thread-2 @coroutine#2
+             * 2 Service dispatcherWeb run in thread pool-2-thread-2 @coroutine#3
+             */
+        }
+
     }
 
 }
