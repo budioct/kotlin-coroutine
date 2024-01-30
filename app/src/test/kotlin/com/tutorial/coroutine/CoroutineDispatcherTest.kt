@@ -137,6 +137,58 @@ class CoroutineDispatcherTest {
              * 2 Service dispatcherWeb run in thread pool-2-thread-2 @coroutine#3
              */
         }
+    }
+
+    /**
+     * withContext Function
+     * ● Sebelumnya kita sudah tahu, bahwa ternyata saat kita melakukan delay(), suspend function
+     *    tersebut akan di trigger di thread yang berbeda.
+     * ● Bagaimana caranya jika kita ingin menjalankan code program kita dalam coroutine di thread yang
+     *    berbeda dengan thread coroutine awalnya?
+     * ● Untuk melakukan itu, kita bisa menggunakan function withContext()
+     * ● Function withContext() sebenarnya bisa kita gunakan untuk mengganti CoroutineContext, namun
+     *    karena CoroutineDispatcher adalah turunan CoroutineContext, jadi kita bisa otomatis mengganti
+     *    thread yang akan digunakan di coroutine menggunakan function withContext()
+     *
+     * Note: CoroutineDispatcher adalah turunan CoroutineContext
+     */
+
+    @Test
+    fun testWithContext() {
+
+        val dispatcherClient: ExecutorCoroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
+        runBlocking {
+            val job = GlobalScope.launch(Dispatchers.IO) {
+                println("1. This code run in ${Thread.currentThread().name}")
+
+                withContext(dispatcherClient) {
+                    println("2. This code run in ${Thread.currentThread().name}")
+                } // <T> withContext( context: CoroutineContext, block: suspend CoroutineScope.() -> T ): T // ingin menjalankan coroutine di thread yang berbeda dengan yang awal
+                println("3. This code run in ${Thread.currentThread().name}")
+
+                withContext(dispatcherClient) {
+                    println("4. This code run in ${Thread.currentThread().name}")
+                }
+
+                withContext(dispatcherClient) {
+                    println("5. This code run in ${Thread.currentThread().name}")
+                }
+
+                println("6. This code run in ${Thread.currentThread().name}")
+            }
+
+            job.join()
+            /**
+             * result:
+             * 1. This code run in DefaultDispatcher-worker-1 @coroutine#2
+             * 2. This code run in pool-1-thread-1 @coroutine#2
+             * 3. This code run in DefaultDispatcher-worker-1 @coroutine#2
+             * 4. This code run in pool-1-thread-1 @coroutine#2
+             * 5. This code run in pool-1-thread-1 @coroutine#2
+             * 6. This code run in DefaultDispatcher-worker-1 @coroutine#2
+             */
+        }
 
     }
 
