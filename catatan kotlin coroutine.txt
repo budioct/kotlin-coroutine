@@ -35,3 +35,8 @@ dishpatchers.Confined tanpa parameter = akan melanjutkan thread dari coroutine s
 
 coroutine scope untuk sebuah flow satu kesatuan untuk mendapatkan data dari server. ketika gagal data tidak akan di tampilkan ke UI
 GlobalScope tidak di anjurkan dalam pembuatan aplikasi
+
+
+* note: bahwa ternyata saat kita melakukan delay(), suspend function tersebut akan di trigger di thread yang berbeda.
+* Bagaimana caranya jika kita ingin menjalankan code program kita dalam coroutine di thread yang berbeda dengan thread coroutine awalnya?
+* Function withContext() sebenarnya bisa kita gunakan untuk mengganti CoroutineContext, namun karena CoroutineDispatcher adalah turunan CoroutineContext, jadi kita bisa otomatis mengganti thread yang akan digunakan di coroutine menggunakan function withContext()
