@@ -2,6 +2,7 @@ package com.tutorial.coroutine
 
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
+import java.util.*
 
 class NonCancellableContextTest {
 
@@ -15,17 +16,16 @@ class NonCancellableContextTest {
 
     @Test
     fun testCancleFinally() {
-
         runBlocking {
             val job = GlobalScope.launch {
                 try {
-                    println("Start Job ${Thread.currentThread().name}")
-                    delay(1000)
-                    println("End Job ${Thread.currentThread().name}")
+                    println("Start Job ${Date()}")
+                    delay(2_000)
+                    println("End Job ${Date()}") // tidak di jalankan karena keburu tidak aktif saat pengecekan coroutine
                 } finally {
-                    println(isActive) // field isActive digunakan mengecek apakah coroutine masih aktif atau tidak (selesai /dibatalkan)
-                    delay(1000) // delay() mengecek apakah proses itu di batalkan atau tidak
-                    println("Finallay ${Thread.currentThread().name}")
+                    println(isActive) // cek apakah job nya masih aktif atau tidak aktif
+                    delay(1000) // cek apakah job nya masih aktif atau tidak aktif
+                    println("Finally") // tidak di jalankan
                 }
             }
 
@@ -37,6 +37,7 @@ class NonCancellableContextTest {
              * Start Job DefaultDispatcher-worker-1 @coroutine#2
              * false
              */
+
         }
     }
 
@@ -58,10 +59,11 @@ class NonCancellableContextTest {
                     delay(1000) // tidak di eksekusi
                     println("End Job ${Thread.currentThread().name}") // tidak di eksekusi
                 } finally {
+                    // withContext(NonCancellable){} // akan override method2 dan attribute dari NonCancellable turunan dari CoroutineContext.. ini suapaya code di block finally tidak bisa di batalkan
                     withContext(NonCancellable) {
-                        println(isActive) // field isActive digunakan mengecek apakah coroutine masih aktif atau tidak (selesai /dibatalkan)
-                        delay(1000) // delay() mengecek apakah proses itu di batalkan atau tidak
-                        println("Finallay ${Thread.currentThread().name}")
+                        println(isActive) // cek apakah job nya masih aktif atau tidak aktif
+                        delay(1000) // cek apakah job nya masih aktif atau tidak aktif
+                        println("Finallay ${Thread.currentThread().name}") // di jalnkan jika kodisi attribute isActive = true
                     }
                 }
             }

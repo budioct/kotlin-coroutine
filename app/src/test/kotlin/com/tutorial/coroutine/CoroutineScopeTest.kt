@@ -37,27 +37,61 @@ class CoroutineScopeTest {
 
         // CoroutineScope(context: CoroutineContext): CoroutineScope // CoroutineScope membukus coroutinecontext
         // Dispatchers seperti Job, tugasnya yang menentukan courutine ada di thread mana
-        val scope = CoroutineScope(Dispatchers.Default)
+        val scope = CoroutineScope(Dispatchers.Default) // fun CoroutineScope(context: CoroutineContext): CoroutineScope // Dispatchers.Default secara otomatis akan tambahkan Job
 
         scope.launch {
-            delay(2000)
-            println("2000: ${Date()}")
+            delay(1000)
+            println("Run ${Thread.currentThread().name}")
         }
 
         scope.launch {
             delay(1000)
-            println("1000: ${Date()}")
+            println("Run ${Thread.currentThread().name}")
+        }
+
+        runBlocking {
+            delay(2000)
+            println("Done")
+        }
+
+        /**
+         * result:
+         * Run DefaultDispatcher-worker-1 @coroutine#2
+         * Run DefaultDispatcher-worker-2 @coroutine#1
+         * Done
+         */
+
+    }
+
+    @Test
+    internal fun testScopeCancle() {
+
+        // key internal adalah visibilty modifier. internal Artinya hanya bisa diakses di module/project yang sama.
+
+        // CoroutineScope(context: CoroutineContext): CoroutineScope // CoroutineScope membukus coroutinecontext
+        // Dispatchers seperti Job, tugasnya yang menentukan courutine ada di thread mana
+        val scope = CoroutineScope(Dispatchers.Default) // fun CoroutineScope(context: CoroutineContext): CoroutineScope // Dispatchers.Default secara otomatis akan tambahkan Job
+
+        scope.launch {
+            delay(2000)
+            println("Run ${Thread.currentThread().name}")
+        }
+
+        scope.launch {
+            delay(2000)
+            println("Run ${Thread.currentThread().name}")
         }
 
         runBlocking {
             delay(1000)
             scope.cancel() // cancel() membatalkan coroutine scope
-            delay(3000)
+            delay(2000)
+            println("Done")
         }
 
         /**
-         * result:
-         * 1000: Tue Jan 30 21:26:35 WIB 2024
+         * result: object.cancle : CoroutineScope.  semua job atau deffered<T> akan di batalkan
+         * Done
          */
 
     }

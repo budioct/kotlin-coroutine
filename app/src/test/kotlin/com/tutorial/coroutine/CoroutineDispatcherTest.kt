@@ -36,7 +36,7 @@ class CoroutineDispatcherTest {
             val job1 = GlobalScope.launch(Dispatchers.Default) {
                 println("Job 1 run in Thread ${Thread.currentThread().name}")
             }
-            val job2 = GlobalScope.launch(Dispatchers.Default) {
+            val job2 = GlobalScope.launch(Dispatchers.IO) {
                 println("Job 2 run in Thread ${Thread.currentThread().name}")
             }
 
@@ -66,6 +66,8 @@ class CoroutineDispatcherTest {
     fun testRunBlocking() {
 
         runBlocking {
+            println("RunBlocking ${Thread.currentThread().name}")
+
             GlobalScope.launch(Dispatchers.Unconfined) {
                 println("1 Unconfined: in thread ${Thread.currentThread().name}")
                 delay(1000)
@@ -114,6 +116,8 @@ class CoroutineDispatcherTest {
         val dispatcherWeb = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
 
         runBlocking {
+            println("RunBlocking ${Thread.currentThread().name}")
+
             val job1 = GlobalScope.launch(dispatcherService) {
                 println("1 Service dispatcherService run in thread ${Thread.currentThread().name}")
                 delay(1000)
@@ -159,6 +163,8 @@ class CoroutineDispatcherTest {
         val dispatcherClient: ExecutorCoroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
         runBlocking {
+            println("RunBlocking ${Thread.currentThread().name}")
+
             val job = GlobalScope.launch(Dispatchers.IO) {
                 println("1. This code run in ${Thread.currentThread().name}")
 

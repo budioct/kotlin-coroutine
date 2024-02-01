@@ -153,7 +153,7 @@ class CoroutineScopeParentandChild {
                 delay(1000)
                 println("Finish Block Coroutine Parent")
             }
-            delay(2000)
+            //delay(1000)
             job.cancelChildren() // cancelChildren() mebatalkan semua job children
             job.join() // join() menunggu proses eksekusi hingga selesai
 
