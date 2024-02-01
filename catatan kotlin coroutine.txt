@@ -1,0 +1,37 @@
+Contoh Concurrency
+
+CPU-bound
+● Jenis algoritma seperti ini tidak ada benefitnya menggunakan Concurrency Programming, namun bisa dibantu dengan implementasi Parallel Programming.
+
+I/O-bound
+● Contohnya aplikasi seperti membaca data dari file, database, dan lain-lain.
+● Aplikasi jenis I/O-bound, walaupun bisa terbantu dengan implementasi Parallel Programming, tapi benefitnya akan lebih baik jika menggunakan Concurrency Programming.
+
+Suspend function adalah suspend computation yaitu komputasi yang bisa di tangguhkan (di tunda waktu eksekusinya) tanpa harus mem-block thread yang sedang berjalan..
+
+Kalau pakai Thread.sleep(milis) akan mem-block thread yang sedang berjalan saat ini, sehingga tidak bisa digunakan..
+
+runBlocking() {} digunakan jalankan coroutine secara blocking Asynchronouse
+
+GlobalScope.launch() {} untuk menjalankan method suspend / coroutine
+
+Selain method launch() {} ada method async() {} untuk membuat coroutine method ini akan return Deffered<T> untuk mendapatkan hasil dari computation coroutine
+
+Job Adah hasil return T dari GlobalScope.launch() {} dimana kita bisa menjalankan, menuggu, membatalkan coroutine
+// Note: method suspend 'join()' harus dipanggil hanya dari CoroutineScope atau method suspend lainnya
+
+
+CoroutineContext(parent class) adalah elemen" yg digunakan coroutineDishpatcher(implement) turunan dari Element, dan Element turunan dari CoroutineContext
+
+CoroutineDishpatcher bertanggung jawab terhadap thread mana yang akan mengeksekusi coroutine
+ada 2 type
+dishpatchers.Default paling kecil 2 thread, sifatnya mengikuti Thread di proccesor arsitektur CPU-Bound
+dishpatcher.IO thread sesuai kebutuhan, ketika butuh di buat ketika tidak butuh akan di hapus, sifatnya seperti ExecutorService
+Note: dishpatcher.Default dan dishpatcher.IO by default itu sharing Thread sampai threadnya habis dari dishpatcher.Default baru eksekusi dishpatcher.IO
+
+ berbeda mekanisme
+dishpatchers.Unconfined = tidak menunjuk thread apapun (fleksibel)
+dishpatchers.Confined tanpa parameter = akan melanjutkan thread dari coroutine sebelumnya (tidak fleksibel)
+
+coroutine scope untuk sebuah flow satu kesatuan untuk mendapatkan data dari server. ketika gagal data tidak akan di tampilkan ke UI
+GlobalScope tidak di anjurkan dalam pembuatan aplikasi
