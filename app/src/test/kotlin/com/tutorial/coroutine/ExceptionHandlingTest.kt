@@ -50,6 +50,7 @@ class ExceptionHandlingTest {
                 throw IllegalArgumentException()
             }
 
+            // method async() harus menangkap Exception dengan try catch
             // untuk menangani Exceptionya runtime kita gunakan try catch
             try {
                 deferred.await() // bisa mendeteksi Exception.. jadi program di baris bawah nya tidak akan di eksekusi
@@ -83,10 +84,16 @@ class ExceptionHandlingTest {
     @Test
     internal fun testExceptionHandler() {
 
+        // jika ingin membuat costume Exception Handler tanpa harus menggunakan try catch
+        // interface CoroutineExceptionHandler adalah pewarisan dari CoroutineContext.Element sehingga bisa tambah di CoroutineContext
+        // CancellationException (dan turunannya) tidak akan diteruskan ke exception handler
+        // hanya jalan di method CoroutineScope.launch().. tidak bisa jalan di async()
+
         val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-            println("Ups, error with message ${throwable.message}") // Ups, error with message Ups Broo
+            println("Message from interface CoroutineExceptionHandler ---> Ups, error with message ${throwable.message}") // Ups, error with message Ups Broo
         }
 
+        // coroutine scope
         val scope = CoroutineScope(exceptionHandler + Dispatchers.IO)
         val job = scope.launch(exceptionHandler) {
             println("Run Job")
@@ -94,12 +101,23 @@ class ExceptionHandlingTest {
         }
 
         runBlocking {
+
+            // coroutine global scope
+            val job2 = GlobalScope.launch(exceptionHandler) {
+                println("Start coroutine")
+                throw IllegalArgumentException("Error Broo")
+            }
+
             job.join()
+            job2.join()
         }
         /**
          * result:
          * Run Job
-         * Ups, error with message Ups Broo
+         * Message from interface CoroutineExceptionHandler ---> Ups, error with message Ups Broo
+         *
+         * Start coroutine
+         * Message from interface CoroutineExceptionHandler ---> Ups, error with message Error Broo
          */
 
     }
