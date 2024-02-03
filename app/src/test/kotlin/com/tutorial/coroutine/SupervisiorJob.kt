@@ -181,5 +181,103 @@ class SupervisiorJob {
 
     }
 
+    /**
+     * Exception Handler di Job dan Supervisor Job
+     * ● Exception handler di Job ataupun di Supervisor Job secara default akan di propagate(sebarkan / eskalasi) ke parent nya
+     * ● Artinya jika kita membuat CoroutineExceptionHandler, kita harus membuatnya di parent, tidak
+     *    bisa di coroutine child nya.
+     * ● Jika kita menambahkan exception handler di coroutine child nya, maka itu tidak akan pernah digunakan
+     *
+     * note: jadi child coroutine tidak bisa handle Exception yang di lakukan hanya propagate(sebarkan / eskalasi) ke parent Job.
+     * Parent Job lah yang akan mengeksekusi Exception nya
+     */
+
+    @Test
+    fun testJobExceptionHandler(){
+
+        // pembuatan Exception Handler yang salah
+
+        val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            println("Error: ${throwable.message}") // ketika Erorr ini akan di tampilkan sebagai pesan nya
+        }
+
+        val dispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher() // sebagai Thread
+        val scope = CoroutineScope(dispatcher) // coroutine scope
+
+        runBlocking {
+            val job = scope.launch {
+                // scope coroutine parent
+
+                launch (exceptionHandler){ // useless atau not used.. jadi ketika error dia tidak akan di eksekusi hanya eskalasi ke parent Job nya
+                    // coroutine ini akan Exception lalu eskalasi ke parent Job, lalu membatalkan coroutine yang lainya
+                    // scope coroutine child
+                    println("Job Child")
+                    throw IllegalArgumentException("Child Error Brooo!!")
+                }
+            }
+
+            job.join()
+        }
+        /**
+         * result: error nya tetap Runtime Execption.. bukan Exception Handling nya
+         * Job Child
+         * Exception in thread "pool-1-thread-2 @coroutine#3" java.lang.IllegalArgumentException: Child Error Brooo!!
+         * 	at com.tutorial.coroutine.SupervisiorJob$testJobExceptionHandler$1$job$1$1.invokeSuspend(SupervisiorJob.kt:212)
+         * 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+         * 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+         * 	at java.base/java.lang.Thread.run(Thread.java:1583)
+         * 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [CoroutineId(2), "coroutine#2":StandaloneCoroutine{Cancelling}@328e5330, java.util.concurrent.ThreadPoolExecutor@15f47664[Running, pool size = 2, active threads = 1, queued tasks = 0, completed tasks = 1]]
+         */
+
+    }
+
+    /**
+     * Exception Handler dengan supervisorScope
+     * ● Salah satu cara agar exception handler bisa dilakukan di coroutine child adalah dengan menggunakan supervisorScope
+     * ● Saat menggunakan supervisorScope, maka exception bisa di gunakan di parent coroutine di
+     *    supervisorScope, atau sebenarnya coroutine child di scope yang ada diatas nya
+     * ● Tapi ingan jika terjadi error di child nya coroutine yang ada di supervisorScope, maka tetap akan di propagate ke parent coroutine di cupervisorScope
+     */
+
+    @Test
+    fun testSupervisorJobExceptionHandler() {
+
+        // mengakali supervisiorJob dengan Exception Handler
+
+        val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+            println("Error ${throwable.message}")
+        } // ketika Erorr ini akan di tampilkan sebagai pesan nya
+
+        val dispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+        val scope = CoroutineScope(dispatcher)
+
+        runBlocking {
+            val job = scope.launch {
+                // scope coroutine super parent
+
+                supervisorScope {
+                    // scope supervisor method
+                    launch(exceptionHandler) {// use di scope supervisorScope
+                        // scope coroutine parent
+                        launch(exceptionHandler) { // useless atau not used
+                            // coroutine ini akan Exception lalu eskalasi ke parent Job. dan Exception masuk ke Handling oleh CoroutineExceptionHandler
+                            // scope coroutine child
+                            println("Job Child")
+                            throw IllegalArgumentException("Child Error Brooo!!")
+                        }
+                    }
+                }
+            }
+
+            job.join()
+        }
+        /**
+         * result: tidak akan Runtime Exception. karna sudah di rubah menjadi Exception Handling
+         * Job Child
+         * Error Child Error Brooo!!
+         */
+    }
 
 }
