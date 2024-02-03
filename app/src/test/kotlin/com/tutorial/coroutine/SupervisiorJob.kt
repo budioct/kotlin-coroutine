@@ -86,4 +86,100 @@ class SupervisiorJob {
 
     }
 
+    /**
+     * supervisorScope Function
+     * ● Kadang ada kondisi dimana kita tidak memiliki akses untuk mengubah sebuah coroutine scope
+     * ● Karena secara default sifatnya adalah Job, maka kita bisa menggunakan supervisorScope function untuk membuat
+     *    coroutine yang sifatnya SupervisorJob
+     */
+
+    @Test
+    fun testSupervisiorScopeFunction1(){
+
+        val dispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+        val scope = CoroutineScope(dispatcher + Job())
+
+        runBlocking {
+            scope.launch {
+                // scope coroutine parent
+
+                launch {
+                    // coroutine tidak di jalankan oleh parent Job
+                    // scope coroutine child
+                    delay(2000)
+                    println("Child 1 Done")
+                }
+
+                launch {
+                    // coroutine ini akan Exception lalu eskalasi ke parent Job, lalu membatalkan coroutine yang lainya
+                    // scope coroutine child
+                    delay(1000)
+                    throw IllegalArgumentException("Child 2 Error")
+                }
+            }
+
+            delay(3000)
+        }
+        /**
+         * result: jika coroutine child kena Exception di akan eskalasi ke Job Parent dan akan menghentikan coroutine yang lainya
+         * Exception in thread "pool-1-thread-2 @coroutine#3" java.lang.IllegalArgumentException: Child 2 Error
+         * 	at com.tutorial.coroutine.SupervisiorJob$testSupervisiorScopeFunction$1$1$2.invokeSuspend(SupervisiorJob.kt:106)
+         * 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+         * 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+         * 	at java.base/java.lang.Thread.run(Thread.java:1583)
+         * 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [CoroutineId(2), "coroutine#2":StandaloneCoroutine{Cancelling}@37eb20c9, java.util.concurrent.ThreadPoolExecutor@13df2a8c[Running, pool size = 4, active threads = 1, queued tasks = 0, completed tasks = 4]]
+         */
+
+    }
+
+    @Test
+    fun testSupervisiorScopeFunction2(){
+
+        val dispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+        val scope = CoroutineScope(dispatcher + Job())
+
+        runBlocking {
+            scope.launch {
+                // scope coroutine parent
+
+                supervisorScope {
+                    // scope supervisiorScope
+                    // SupervisorJob() adalah turunan dari Job(), ketika coroutine ada yang Exception lalu eskalasi ke parent job, tetapi job tidak akan menghentikan coroutine yang lain nya
+
+                    launch {
+                        // coroutine akan tetap di jalankan, karna SupervisiorJob()
+                        // scope coroutine child
+                        delay(2000)
+                        println("Child 1 Done")
+                    }
+
+                    launch {
+                        // coroutine ini akan Exception lalu eskalasi ke parent Job, lalu membatalkan coroutine yang lainya
+                        // scope coroutine child
+                        delay(1000)
+                        throw IllegalArgumentException("Child 2 Error")
+                    }
+                }
+            }
+
+            delay(3000)
+        }
+        /**
+         * result: penggunaan method supervisorScope() // SupervisorJob() adalah turunan dari Job(), ketika coroutine ada yang Exception lalu eskalasi ke parent job, tetapi job tidak akan menghentikan coroutine yang lain nya
+         * Exception in thread "pool-1-thread-4 @coroutine#4" java.lang.IllegalArgumentException: Child 2 Error
+         * 	at com.tutorial.coroutine.SupervisiorJob$testSupervisiorScopeFunction2$1$1$1$2.invokeSuspend(SupervisiorJob.kt:158)
+         * 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+         * 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+         * 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+         * 	at java.base/java.lang.Thread.run(Thread.java:1583)
+         * 	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [CoroutineId(4), "coroutine#4":StandaloneCoroutine{Cancelling}@7593a791, java.util.concurrent.ThreadPoolExecutor@163370c2[Running, pool size = 4, active threads = 1, queued tasks = 0, completed tasks = 3]]
+         * Child 1 Done
+         */
+
+    }
+
+
 }
