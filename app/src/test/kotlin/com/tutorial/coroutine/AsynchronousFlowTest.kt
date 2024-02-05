@@ -1,11 +1,7 @@
 package com.tutorial.coroutine
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import org.junit.jupiter.api.Test
 
 class AsynchronousFlowTest {
@@ -81,7 +77,7 @@ class AsynchronousFlowTest {
     }
 
     @Test
-    fun testFlowOperator(){
+    fun testFlowOperator() {
 
         // it di kotling adalah. object saat ini seperti this
         // filter() seperti condition
@@ -103,6 +99,46 @@ class AsynchronousFlowTest {
          * Number 4
          * Number 6
          * n ~ n 100
+         */
+
+    }
+
+    /**
+     * Flow Exception
+     * ● Saat terjadi exception pada flow, di bagian operator apapun, maka flow akan berhenti, lalu
+     *    exception akan di throw oleh flow
+     * ● Untuk menangkap exception tersebut, kita bisa menggunakan block try-catch
+     * ● Namun flow juga menyediakan operator untuk menangkap exception tersebut, nama functionnya adalah catch()
+     * ● Dan untuk finally, flow juga sudah menyediakan operatornya, nama function nya adalah onCompletion()
+     * ● Ingat, jika terjadi error di flow, flow akan dihentikan, jika kita ingin flow tidak berhenti saat terjadi
+     *    error, pastikan kita selalu melakukan try catch di kode flow nya
+     */
+
+    @Test
+    fun testFlowException() {
+
+        // onEach() // iterasi data dan mengirim data flow
+        // catch() // untuk menangkap Exception di flow
+        // onCompletion() // untuk block Finally di flow
+        // collect // mengakses flow
+
+        runBlocking {
+
+            val flow = numberFlow() // method suspend
+            flow.map { check(it < 10); it }
+                .onEach { println("onEach() $it") }
+                .catch { println("catch() Error ${it.message}") }
+                .onCompletion { println("onCompletion Done") }
+                .collect()
+        }
+        /**
+         * result:
+         * onEach() 0
+         * onEach() 1
+         * onEach() 2
+         * onEach() 3
+         * onEach() 4
+         * n ~ n 10
          */
 
     }
