@@ -41,7 +41,7 @@ class SharedFlowTest {
          */
 
         val scope: CoroutineScope = CoroutineScope(Dispatchers.IO) // coroutineScope IO
-        val sharedFlow: MutableSharedFlow<Int> = MutableSharedFlow<Int>() // Shared Flow
+        val sharedFlow: MutableSharedFlow<Int> = MutableSharedFlow<Int>() // instance Shared Flow
 
         // job sender
         scope.launch {
@@ -112,8 +112,6 @@ class SharedFlowTest {
          * Received Job2=  9 - Wed Feb 07 14:39:49 WIB 2024
          */
 
-
     }
-
 
 }
