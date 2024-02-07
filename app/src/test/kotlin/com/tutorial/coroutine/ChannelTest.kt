@@ -1,6 +1,7 @@
 package com.tutorial.coroutine
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import org.junit.jupiter.api.Test
 
@@ -149,6 +150,72 @@ class ChannelTest {
          * received Data 2
          */
 
+    }
+
+    /**
+     * Channel Buffer Overflow
+     * ● Walaupun kita sudah menggunakan buffer, ada kalanya buffer sudah penuh, dan sender tetap mengirimkan data
+     * ● Dalam kasus seperti ini, kita bisa menggunakan beberapa strategy
+     * ● Untuk mengatur ketika terjadi buffer overflow (kelebihan data yang ditampung oleh buffer), kita
+     *    bisa menggunakan enum BufferOverflow
+     *
+     * BufferOverflow Enum      Keterangan
+     * SUSPEND                  Block sender (suruh menunggu sampai buffer nya kosong)
+     * DROP_OLDEST              Hapus data di buffer yang paling lama (paling depan)
+     * DROP_LATEST              Hapus data di buffer yang paling baru (paling belakang)
+     */
+
+    @Test
+    fun testChannelBufferOverflow() {
+
+        runBlocking {
+
+            val channel = Channel<Int>(capacity = 10, onBufferOverflow = BufferOverflow.DROP_LATEST)
+
+            // sender
+            val job1 = launch {
+                repeat(100) {
+                    println("send data $it to channel")
+                    channel.send(it)
+                }
+            }
+            job1.join()
+
+            // received
+            val job2 = launch {
+                repeat(10) {
+                    println("receive data ${channel.receive()}")
+                }
+            }
+            job2.join()
+
+            channel.close()
+        }
+        /** result: BufferOverflow.DROP_OLDEST, jadi data sender akan di kirim terus tetapi karna capacity buffer hanya bisa menampung 10, jadi data yang paling lama akan di hapus. yang di terima data paling baru saja yang di kirim oleh sender
+         ** result: BufferOverflow.DROP_LATEST, kebalikan dari BufferOverflow.DROP_OLDEST
+         * send data 0 to channel
+         * send data 1 to channel
+         * send data 2 to channel
+         * send data 3 to channel
+         * send data 4 to channel
+         * send data 5 to channel
+         * send data 6 to channel
+         * send data 7 to channel
+         * send data 8 to channel
+         * send data 9 to channel
+         * send data 10 to channel
+         * send data n to channel
+         * receive data 90
+         * receive data 91
+         * receive data 92
+         * receive data 93
+         * receive data 94
+         * receive data 95
+         * receive data 96
+         * receive data 97
+         * receive data 98
+         * receive data 99
+         */
     }
 
 }
