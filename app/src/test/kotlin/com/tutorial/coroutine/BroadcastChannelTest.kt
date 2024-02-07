@@ -103,6 +103,7 @@ class BroadcastChannelTest {
 //            }
 //        }
 
+        // sender
         // membuat broadcastchannel dengan method CoroutineScope.broadcast: BroadcastChannel<E>
         val broadcastChannel = scope.broadcast<Int>(capacity = 10) {
             repeat(10) {
@@ -154,6 +155,71 @@ class BroadcastChannelTest {
          * receive job 2 : 7
          * receive job 2 : 8
          * receive job 2 : 9
+         */
+
+    }
+
+    /**
+     * Conflated Broadcast Channel
+     * ● Conflated Broadcast Channel adalah turunan dari Broadcast Channel, sehingga cara kerjanya sama
+     * ● Pada Broadcast Channel, walaupun receiver lambat, maka receiver tetap akan mendapatkan seluruh data dari sender
+     * ● Namun berbeda dengan Conflated Broadcast Channel, receiver hanya akan mendapat data paling baru dari sender
+     * ● Jadi jika receiver lambat, receiver hanya akan mendapat data paling baru saja, bukan semua data
+     */
+
+    @Test
+    fun testConflatedBroadcastChannel() {
+
+        /**
+         * note: jadi kita akan simulasi kirim data ke Channel, walaupun receive lambat tidak seperti sender
+         * kita akan mengirim data per 1 detik
+         * dan akan menerima data per 2 detik
+         * data nya akan di cetak
+         */
+
+        val conflatedBroadcastChannel = ConflatedBroadcastChannel<Int>()
+        val receiveChannel = conflatedBroadcastChannel.openSubscription()
+
+        val scope = CoroutineScope(Dispatchers.IO)
+
+        // sender.. tiap detik kita kirim data
+        val job1 = scope.launch {
+            repeat(10){
+                delay(1000)
+                println("Send to Channel $it")
+                conflatedBroadcastChannel.send(it)
+            }
+        }
+
+        // receive tiap 2 detik menerima data
+        val job2 = scope.launch {
+            repeat(10){
+                delay(2000)
+                println("Receive from Channel ${receiveChannel.receive()}")
+            }
+        }
+
+        runBlocking {
+            delay(11_000)
+            scope.cancel()
+        }
+        /**
+         * result: jadi ada 1 data yang hilang, karna setiap 1 detik kirim data, sedangkan penerima delay 2 detik baru datanya diterima
+         * Send to Channel 0
+         * Receive from Channel 0
+         * Send to Channel 1
+         * Send to Channel 2
+         * Receive from Channel 2
+         * Send to Channel 3
+         * Send to Channel 4
+         * Receive from Channel 4
+         * Send to Channel 5
+         * Send to Channel 6
+         * Receive from Channel 6
+         * Send to Channel 7
+         * Send to Channel 8
+         * Receive from Channel 8
+         * Send to Channel 9
          */
 
     }
