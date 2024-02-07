@@ -3,6 +3,8 @@ package com.tutorial.coroutine
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.produce
 import org.junit.jupiter.api.Test
 
 class ChannelTest {
@@ -273,6 +275,53 @@ class ChannelTest {
          * 	at kotlinx.coroutines.channels.BufferedChannel.send(BufferedChannel.kt)
          * 	at com.tutorial.coroutine.ChannelTest$testUndeliveredElement$1$job$1.invokeSuspend(ChannelTest.kt:247)
          */
+    }
+
+    /**
+     * produce Function
+     * ● Coroutine scope memiliki sebuah function bernama produce, ini digunakan untuk membuat
+     *    sebuah coroutine yang digunakan untuk mengirim data ke channel, sederhananya kita bisa
+     *    membuat channel secara mudah dengan menggunakan function produce ini
+     * ● Hasil return dari produce adalah ReceiveChannel (parent interface dari Channel), yang hanya bisa
+     *    digunakan untuk mengambil data
+     */
+
+    @Test
+    fun testProduce() {
+
+        val scope = CoroutineScope(Dispatchers.IO)
+
+        // membuat channel manual
+//        val channel = Channel<Int>()
+
+        // sender
+        // manual membuat coroutine untuk kirim data ke dalam channel nya
+//        val job1 = scope.launch {
+//            repeat(100) {
+//                println("Send data $it to channel")
+//                channel.send(it)
+//            }
+//        }
+
+        // sender
+        // membuat channel dari method produce
+        val channel: ReceiveChannel<Int> = scope.produce {
+            repeat(100) {
+                send(it)
+            }
+        }
+
+        // received
+        val job2 = scope.launch {
+            repeat(100) {
+                println("Received data ${channel.receive()} from channel")
+            }
+        }
+
+        runBlocking {
+            joinAll(job2)
+        }
+
     }
 
 }
