@@ -218,4 +218,61 @@ class ChannelTest {
          */
     }
 
+    /**
+     * Channel Undelivered Element
+     * ● Kadang ada kasus dimana sebuah channel sudah di close, tetapi ada coroutine yang masih mencoba
+     *    mengirim data ke channel
+     * ● Ketika kita mencoba mengirim data ke channel yang sudah close, maka secara otomatis channel akan mengembalikan
+     *    error ClosedSendChannelException
+     * ● Namun pertanyaannya, bagaimana dengan data yang sudah dikirim?
+     * ● Kita bisa menambah lambda function ketika membuat channel, sebagai fallback ketika sebuah data
+     *    dikirim dan channel sudah di close, maka fallback tersebut akan dieksekusi
+     * ● Function fallback tersebut bernama onUndeliveredElement
+     */
+
+    @Test
+    fun testUndeliveredElement() {
+
+        // method Channel<E>() adalah lambda dengan method
+        // onUndeliveredElement: ((E) -> Unit)? = null
+
+
+        val channel = Channel<Int>(capacity = 10) { value ->
+            // lambda dari onUndeliveredElement()
+            println("Undelivered Element $value")
+        }
+        channel.close()
+
+        runBlocking {
+
+            // sender
+            val job = launch {
+                channel.send(10)
+                channel.send(100)
+            }
+
+            job.join()
+        }
+        /**
+         * result: jadi saat mengirim sender 10 lalu sudah di tutup channel.close() line 244. akan Exception ClosedSendChannelException
+         * terus saat sender mengirim 100 keburu tidak di eksekusi. jadi launch coroutine tidak bisa deliver karna sudah di tutup
+         * Undelivered Element 10
+         *
+         * kotlinx.coroutines.channels.ClosedSendChannelException: Channel was closed
+         * 	at kotlinx.coroutines.channels.BufferedChannel.getSendException(BufferedChannel.kt:1734)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.onClosedSend(BufferedChannel.kt:141)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.send$suspendImpl(BufferedChannel.kt:126)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.send(BufferedChannel.kt)
+         * 	at com.tutorial.coroutine.ChannelTest$testUndeliveredElement$1$job$1.invokeSuspend(ChannelTest.kt:247)
+         * 	at _COROUTINE._BOUNDARY._(CoroutineDebugging.kt:46)
+         * 	at com.tutorial.coroutine.ChannelTest$testUndeliveredElement$1$job$1.invokeSuspend(ChannelTest.kt:247)
+         * Caused by: kotlinx.coroutines.channels.ClosedSendChannelException: Channel was closed
+         * 	at kotlinx.coroutines.channels.BufferedChannel.getSendException(BufferedChannel.kt:1734)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.onClosedSend(BufferedChannel.kt:141)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.send$suspendImpl(BufferedChannel.kt:126)
+         * 	at kotlinx.coroutines.channels.BufferedChannel.send(BufferedChannel.kt)
+         * 	at com.tutorial.coroutine.ChannelTest$testUndeliveredElement$1$job$1.invokeSuspend(ChannelTest.kt:247)
+         */
+    }
+
 }
