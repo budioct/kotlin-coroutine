@@ -10,6 +10,10 @@ import org.junit.jupiter.api.Test
 class BroadcastChannelTest {
 
     /**
+     * Note: Broadcast Channel sudah @Deprecated kotlin_1.4^, versi terbaru kotlin sekarang di sarankan menggunakan Shared Flow karna lebih flexible
+     */
+
+    /**
      * Broadcast Channel
      * ● Secara default channel hanya boleh memiliki 1 receiver
      * ● Namun Kotlin Coroutine mendukung Broadcast Channel, ini adalah channel khusus yang receiver nya bisa lebih dari satu
